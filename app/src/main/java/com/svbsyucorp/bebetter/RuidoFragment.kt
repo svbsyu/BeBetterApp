@@ -1,75 +1,90 @@
 package com.svbsyucorp.bebetter
 
-import android.media.MediaPlayer
+import android.content.BroadcastReceiver
+import android.content.Context
+import android.content.Intent
+import android.content.IntentFilter
 import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
+import androidx.localbroadcastmanager.content.LocalBroadcastManager
 
 class RuidoFragment : Fragment() {
 
-    private var mediaPlayer: MediaPlayer? = null
-    private var isPlaying = false
     private lateinit var playStopButton: Button
-    private val handler = Handler(Looper.getMainLooper())
+    private var isServiceRunning = false
 
-
-    private val twoHoursInMillis = 2 * 60 * 60 * 1000L // 2 horas en milisegundos
-
-    private val stopRunnable = Runnable {
-        stopSound()
+    private val serviceStateReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context?, intent: Intent?) {
+            isServiceRunning = intent?.getBooleanExtra("is_running", false) ?: false
+            updateUI()
+        }
     }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        return inflater.inflate(R.layout.fragment_ruido, container, false)
+        val view = inflater.inflate(R.layout.fragment_ruido, container, false)
+        playStopButton = view.findViewById(R.id.buttonPlayStop)
+        return view
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        playStopButton = view.findViewById(R.id.buttonPlayStop)
-
         playStopButton.setOnClickListener {
-            if (isPlaying) {
-                stopSound()
+            if (isServiceRunning) {
+                stopSoundService()
             } else {
-                playSound()
+                startSoundService()
             }
         }
     }
 
-    private fun playSound() {
-        if (mediaPlayer == null) {
-            mediaPlayer = MediaPlayer.create(context, R.raw.white_noise)
-            mediaPlayer?.isLooping = true // Para que se repita indefinidamente
+    private fun startSoundService() {
+        val intent = Intent(context, RuidoService::class.java).apply {
+            action = RuidoService.ACTION_PLAY
         }
-
-        mediaPlayer?.start()
-        isPlaying = true
-        playStopButton.text = "Detener"
-
-        handler.postDelayed(stopRunnable, twoHoursInMillis) //para que se detenga en 2 horas
+        context?.startService(intent)
+        isServiceRunning = true
+        updateUI()
     }
 
-    private fun stopSound() {
-        mediaPlayer?.pause()
-        mediaPlayer?.seekTo(0)
-        isPlaying = false
-        playStopButton.text = "Reproducir"
-        handler.removeCallbacks(stopRunnable)
+    private fun stopSoundService() {
+        val intent = Intent(context, RuidoService::class.java).apply {
+            action = RuidoService.ACTION_STOP
+        }
+        context?.startService(intent)
+        isServiceRunning = false
+        updateUI()
     }
 
-    override fun onStop() {
-        super.onStop()
-        mediaPlayer?.release()
-        mediaPlayer = null
-        handler.removeCallbacks(stopRunnable)
+    private fun updateUI() {
+        if (isServiceRunning) {
+            playStopButton.text = "Detener"
+        } else {
+            playStopButton.text = "Reproducir"
+        }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        LocalBroadcastManager.getInstance(requireContext()).registerReceiver(
+            serviceStateReceiver,
+            IntentFilter("ruido_service_status")
+        )
+        val intent = Intent(context, RuidoService::class.java).apply {
+            action = "get_status"
+        }
+        context?.startService(intent)
+    }
+
+    override fun onPause() {
+        super.onPause()
+        LocalBroadcastManager.getInstance(requireContext()).unregisterReceiver(serviceStateReceiver)
     }
 }
