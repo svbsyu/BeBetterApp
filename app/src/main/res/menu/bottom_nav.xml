@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item android:title="Habit"
+        android:icon="@drawable/habit"
+        android:id="@+id/habit"/>
+    <item android:title="Sleep"
+        android:icon="@drawable/sleep"
+        android:id="@+id/sleep"/>
+    <item android:title="Ruido"
+        android:icon="@drawable/ruido"
+        android:id="@+id/ruido"
+        />
+</menu>

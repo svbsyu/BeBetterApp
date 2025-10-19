@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "474792045569",
+    "project_id": "bebetter-34029",
+    "storage_bucket": "bebetter-34029.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:474792045569:android:f3563689cf04e3ae9b2400",
+        "android_client_info": {
+          "package_name": "com.svbsyucorp.bebetter"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBuFI_76yFjZJ3GRZbFxUbwmp03u117lPE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
